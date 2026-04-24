@@ -29,12 +29,15 @@ export function buildFallbackBody(
   originalBody: Record<string, unknown>,
   fallbackAgent: string,
 ): Record<string, unknown> {
+  const originalModel = originalBody.model as { providerID?: string } | undefined
+  const allowCallOmoAgent = originalModel?.providerID !== "anthropic"
+
   return {
     ...originalBody,
     agent: fallbackAgent,
     tools: {
       task: false,
-      call_omo_agent: true,
+      call_omo_agent: allowCallOmoAgent,
       question: false,
       ...getAgentToolRestrictions(fallbackAgent),
     },
@@ -147,6 +150,7 @@ export async function startTask(
     : undefined
   const launchVariant = input.model?.variant
   const normalizedAgent = stripAgentListSortPrefix(input.agent)
+  const allowCallOmoAgent = launchModel?.providerID !== "anthropic"
 
   applySessionPromptParams(sessionID, input.model)
 
@@ -157,7 +161,7 @@ export async function startTask(
     system: input.skillContent,
     tools: {
       task: false,
-      call_omo_agent: true,
+      call_omo_agent: allowCallOmoAgent,
       question: false,
       ...getAgentToolRestrictions(normalizedAgent),
     },
@@ -282,6 +286,7 @@ export async function resumeTask(
       }
     : undefined
   const resumeVariant = task.model?.variant
+  const allowCallOmoAgent = resumeModel?.providerID !== "anthropic"
 
   applySessionPromptParams(task.sessionID, task.model)
 
@@ -291,7 +296,7 @@ export async function resumeTask(
     ...(resumeVariant ? { variant: resumeVariant } : {}),
     tools: {
       task: false,
-      call_omo_agent: true,
+      call_omo_agent: allowCallOmoAgent,
       question: false,
       ...getAgentToolRestrictions(task.agent),
     },

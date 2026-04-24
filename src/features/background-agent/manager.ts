@@ -561,9 +561,10 @@ export class BackgroundManager {
       ...(launchVariant ? { variant: launchVariant } : {}),
       system: input.skillContent,
       tools: (() => {
+        const allowCallOmoAgent = launchModel?.providerID !== "anthropic"
         const tools = {
           task: false,
-          call_omo_agent: true,
+          call_omo_agent: allowCallOmoAgent,
           question: false,
           ...getAgentToolRestrictions(input.agent),
         }
@@ -870,9 +871,10 @@ export class BackgroundManager {
         ...(resumeModel ? { model: resumeModel } : {}),
         ...(resumeVariant ? { variant: resumeVariant } : {}),
         tools: (() => {
+          const allowCallOmoAgent = resumeModel?.providerID !== "anthropic"
           const tools = {
             task: false,
-            call_omo_agent: true,
+            call_omo_agent: allowCallOmoAgent,
             question: false,
             ...getAgentToolRestrictions(existingTask.agent),
           }
