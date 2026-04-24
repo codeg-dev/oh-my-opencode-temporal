@@ -1,5 +1,5 @@
 import { describe, test, expect, mock, afterEach } from "bun:test"
-import { createTask, startTask } from "./spawner"
+import { buildFallbackBody, createTask, resumeTask, startTask } from "./spawner"
 import type { BackgroundTask } from "./types"
 import {
   clearSessionPromptParams,
@@ -406,6 +406,168 @@ describe("background-agent spawner fallback model promotion", () => {
         thinking: { type: "disabled" },
       },
     })
+  })
+
+  test("launch disables call_omo_agent for anthropic provider", async () => {
+    const promptCalls: any[] = []
+
+    const client = {
+      session: {
+        get: async () => ({ data: { directory: "/parent/dir" } }),
+        create: async () => ({ data: { id: "ses_child_anthropic" } }),
+        promptAsync: async (args: any) => {
+          promptCalls.push(args)
+          return { data: {} }
+        },
+      },
+    } as any
+
+    const task = createTask({
+      description: "Test task",
+      prompt: "Do work",
+      agent: "oracle",
+      parentSessionID: "ses_parent",
+      parentMessageID: "msg_parent",
+      model: { providerID: "anthropic", modelID: "claude-sonnet-4-5" },
+    })
+
+    await startTask(
+      {
+        task,
+        input: {
+          description: task.description,
+          prompt: task.prompt,
+          agent: task.agent,
+          parentSessionID: task.parentSessionID,
+          parentMessageID: task.parentMessageID,
+          parentModel: task.parentModel,
+          parentAgent: task.parentAgent,
+          model: task.model,
+        },
+      } as any,
+      {
+        client,
+        directory: "/fallback",
+        concurrencyManager: { release: () => {} },
+        tmuxEnabled: false,
+        onTaskError: () => {},
+      } as any,
+    )
+
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(promptCalls).toHaveLength(1)
+    expect(promptCalls[0]?.body?.tools?.call_omo_agent).toBe(false)
+  })
+
+  test("launch keeps call_omo_agent enabled for openai provider", async () => {
+    const promptCalls: any[] = []
+
+    const client = {
+      session: {
+        get: async () => ({ data: { directory: "/parent/dir" } }),
+        create: async () => ({ data: { id: "ses_child_openai" } }),
+        promptAsync: async (args: any) => {
+          promptCalls.push(args)
+          return { data: {} }
+        },
+      },
+    } as any
+
+    const task = createTask({
+      description: "Test task",
+      prompt: "Do work",
+      agent: "general",
+      parentSessionID: "ses_parent",
+      parentMessageID: "msg_parent",
+      model: { providerID: "openai", modelID: "gpt-5.4" },
+    })
+
+    await startTask(
+      {
+        task,
+        input: {
+          description: task.description,
+          prompt: task.prompt,
+          agent: task.agent,
+          parentSessionID: task.parentSessionID,
+          parentMessageID: task.parentMessageID,
+          parentModel: task.parentModel,
+          parentAgent: task.parentAgent,
+          model: task.model,
+        },
+      } as any,
+      {
+        client,
+        directory: "/fallback",
+        concurrencyManager: { release: () => {} },
+        tmuxEnabled: false,
+        onTaskError: () => {},
+      } as any,
+    )
+
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(promptCalls).toHaveLength(1)
+    expect(promptCalls[0]?.body?.tools?.call_omo_agent).toBe(true)
+  })
+
+  test("resume disables call_omo_agent for anthropic provider", async () => {
+    const promptCalls: any[] = []
+
+    const client = {
+      session: {
+        promptAsync: async (args: any) => {
+          promptCalls.push(args)
+          return { data: {} }
+        },
+      },
+    } as any
+
+    const task = {
+      id: "bg_resume_anthropic",
+      status: "pending",
+      queuedAt: new Date(),
+      description: "Test task",
+      prompt: "Do work",
+      agent: "oracle",
+      sessionID: "ses_resume",
+      parentSessionID: "ses_parent",
+      parentMessageID: "msg_parent",
+      model: { providerID: "anthropic", modelID: "claude-sonnet-4-5" },
+      concurrencyGroup: "anthropic/claude-sonnet-4-5",
+    } as any
+
+    await resumeTask(
+      task,
+      {
+        prompt: "Do work",
+        parentSessionID: "ses_parent",
+        parentMessageID: "msg_parent",
+      } as any,
+      {
+        client,
+        concurrencyManager: { acquire: async () => {}, release: () => {} },
+        onTaskError: () => {},
+      } as any,
+    )
+
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(promptCalls).toHaveLength(1)
+    expect(promptCalls[0]?.body?.tools?.call_omo_agent).toBe(false)
+  })
+
+  test("createFallbackBody disables call_omo_agent for anthropic provider", async () => {
+    const body = buildFallbackBody(
+      {
+        model: { providerID: "anthropic", modelID: "claude-sonnet-4-5" },
+        tools: { task: true, call_omo_agent: true, question: true },
+      },
+      "general",
+    )
+
+    expect(body.tools?.call_omo_agent).toBe(false)
   })
 
   test("keeps agent when explicit model is configured", async () => {

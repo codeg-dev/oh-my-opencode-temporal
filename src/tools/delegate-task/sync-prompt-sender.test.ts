@@ -175,6 +175,92 @@ bunDescribe("sendSyncPrompt", () => {
     bunExpect(promptArgs.body.tools.call_omo_agent).toBe(true)
   })
 
+  bunTest("disables call_omo_agent when categoryModel.providerID is anthropic", async () => {
+    //#given
+    const { sendSyncPrompt } = require("./sync-prompt-sender")
+
+    let promptArgs: any
+    const promptAsync = bunMock(async (input: any) => {
+      promptArgs = input
+      return { data: {} }
+    })
+
+    const mockClient = {
+      session: {
+        promptAsync,
+      },
+    }
+
+    const input = {
+      sessionID: "test-session",
+      agentToUse: "sisyphus",
+      args: {
+        description: "test task",
+        prompt: "test prompt",
+        category: "quick",
+        run_in_background: false,
+        load_skills: [],
+      },
+      systemContent: undefined,
+      categoryModel: {
+        providerID: "anthropic",
+        modelID: "claude-3.7-sonnet",
+      },
+      toastManager: null,
+      taskId: undefined,
+    }
+
+    //#when
+    await sendSyncPrompt(mockClient, input)
+
+    //#then
+    bunExpect(promptAsync).toHaveBeenCalled()
+    bunExpect(promptArgs.body.tools.call_omo_agent).toBe(false)
+  })
+
+  bunTest("keeps call_omo_agent enabled for openai provider", async () => {
+    //#given
+    const { sendSyncPrompt } = require("./sync-prompt-sender")
+
+    let promptArgs: any
+    const promptAsync = bunMock(async (input: any) => {
+      promptArgs = input
+      return { data: {} }
+    })
+
+    const mockClient = {
+      session: {
+        promptAsync,
+      },
+    }
+
+    const input = {
+      sessionID: "test-session",
+      agentToUse: "sisyphus",
+      args: {
+        description: "test task",
+        prompt: "test prompt",
+        category: "quick",
+        run_in_background: false,
+        load_skills: [],
+      },
+      systemContent: undefined,
+      categoryModel: {
+        providerID: "openai",
+        modelID: "gpt-5.4",
+      },
+      toastManager: null,
+      taskId: undefined,
+    }
+
+    //#when
+    await sendSyncPrompt(mockClient, input)
+
+    //#then
+    bunExpect(promptAsync).toHaveBeenCalled()
+    bunExpect(promptArgs.body.tools.call_omo_agent).toBe(true)
+  })
+
   bunTest("includes agent alongside explicit category model", async () => {
     //#given
     const { sendSyncPrompt } = require("./sync-prompt-sender")
