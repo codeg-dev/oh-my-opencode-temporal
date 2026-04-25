@@ -758,6 +758,8 @@ describe("executeSyncContinuation - toast cleanup error paths", () => {
                 time: { created: 2000 },
                 finish: "end_turn",
                 agent: "prometheus",
+                providerID: "openai",
+                modelID: "gpt-5.4",
               },
               parts: [{ type: "text", text: "Response" }],
             },
@@ -807,6 +809,74 @@ describe("executeSyncContinuation - toast cleanup error paths", () => {
     expect(promptAsyncCalls[0]?.body.tools).toEqual({
       task: true,
       call_omo_agent: true,
+      question: false,
+    })
+  })
+
+  test("disables call_omo_agent during sync continuation when resumed model is omitted", async () => {
+    //#given
+    const promptAsyncCalls: Array<{ path: { id: string }; body: Record<string, unknown> }> = []
+    const mockClient = {
+      session: {
+        messages: async () => ({
+          data: [
+            { info: { id: "msg_001", role: "user", time: { created: 1000 } } },
+            {
+              info: {
+                id: "msg_002",
+                role: "assistant",
+                time: { created: 2000 },
+                finish: "end_turn",
+                agent: "general",
+              },
+              parts: [{ type: "text", text: "Response" }],
+            },
+          ],
+        }),
+        promptAsync: async (input: { path: { id: string }; body: Record<string, unknown> }) => {
+          promptAsyncCalls.push(input)
+          return {}
+        },
+        status: async () => ({
+          data: { ses_test: { type: "idle" } },
+        }),
+      },
+    }
+
+    const { executeSyncContinuation } = require("./sync-continuation")
+
+    const deps = {
+      pollSyncSession: async () => null,
+      fetchSyncResult: async () => ({ ok: true as const, textContent: "Result" }),
+    }
+
+    const mockCtx = {
+      sessionID: "parent-session",
+      callID: "call-123",
+      metadata: () => {},
+    }
+
+    const mockExecutorCtx = {
+      client: mockClient,
+      syncPollTimeoutMs: 100,
+    }
+
+    const args = {
+      task_id: "ses_test_12345678",
+      prompt: "continue working",
+      description: "resume untyped task",
+      load_skills: [],
+      run_in_background: false,
+    }
+
+    //#when
+    await executeSyncContinuation(args, mockCtx, mockExecutorCtx, { sessionID: "parent-session", messageID: "parent-message" }, deps)
+
+    //#then
+    expect(promptAsyncCalls).toHaveLength(1)
+    expect(promptAsyncCalls[0]?.body.tools).toEqual({
+      task: false,
+      call_omo_agent: false,
       question: false,
     })
   })

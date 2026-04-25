@@ -135,7 +135,7 @@ bunDescribe("sendSyncPrompt", () => {
     bunExpect(promptArgs.body.tools.call_omo_agent).toBe(false)
   })
 
-  bunTest("does not restrict call_omo_agent for sisyphus agent", async () => {
+  bunTest("keeps call_omo_agent enabled for sisyphus agent with explicit non-anthropic model", async () => {
     //#given
     const { sendSyncPrompt } = require("./sync-prompt-sender")
 
@@ -162,7 +162,10 @@ bunDescribe("sendSyncPrompt", () => {
         load_skills: [],
       },
       systemContent: undefined,
-      categoryModel: undefined,
+      categoryModel: {
+        providerID: "openai",
+        modelID: "gpt-5.4",
+      },
       toastManager: null,
       taskId: undefined,
     }
@@ -206,6 +209,46 @@ bunDescribe("sendSyncPrompt", () => {
         providerID: "anthropic",
         modelID: "claude-3.7-sonnet",
       },
+      toastManager: null,
+      taskId: undefined,
+    }
+
+    //#when
+    await sendSyncPrompt(mockClient, input)
+
+    //#then
+    bunExpect(promptAsync).toHaveBeenCalled()
+    bunExpect(promptArgs.body.tools.call_omo_agent).toBe(false)
+  })
+
+  bunTest("disables call_omo_agent when categoryModel is omitted", async () => {
+    //#given
+    const { sendSyncPrompt } = require("./sync-prompt-sender")
+
+    let promptArgs: any
+    const promptAsync = bunMock(async (input: any) => {
+      promptArgs = input
+      return { data: {} }
+    })
+
+    const mockClient = {
+      session: {
+        promptAsync,
+      },
+    }
+
+    const input = {
+      sessionID: "test-session",
+      agentToUse: "sisyphus",
+      args: {
+        description: "test task",
+        prompt: "test prompt",
+        category: "quick",
+        run_in_background: false,
+        load_skills: [],
+      },
+      systemContent: undefined,
+      categoryModel: undefined,
       toastManager: null,
       taskId: undefined,
     }

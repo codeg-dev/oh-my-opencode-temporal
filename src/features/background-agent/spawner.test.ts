@@ -39,6 +39,7 @@ describe("background-agent spawner agent-not-found fallback", () => {
       agent: "Sisyphus-Junior",
       parentSessionID: "ses_parent",
       parentMessageID: "msg_parent",
+      model: { providerID: "openai", modelID: "gpt-5.4" },
     })
 
     const item = {
@@ -562,6 +563,17 @@ describe("background-agent spawner fallback model promotion", () => {
     const body = buildFallbackBody(
       {
         model: { providerID: "anthropic", modelID: "claude-sonnet-4-5" },
+        tools: { task: true, call_omo_agent: true, question: true },
+      },
+      "general",
+    )
+
+    expect(body.tools?.call_omo_agent).toBe(false)
+  })
+
+  test("createFallbackBody disables call_omo_agent when provider is omitted", async () => {
+    const body = buildFallbackBody(
+      {
         tools: { task: true, call_omo_agent: true, question: true },
       },
       "general",
