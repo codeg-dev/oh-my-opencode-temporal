@@ -30,7 +30,7 @@ export function buildFallbackBody(
   fallbackAgent: string,
 ): Record<string, unknown> {
   const originalModel = originalBody.model as { providerID?: string } | undefined
-  const allowCallOmoAgent = originalModel ? originalModel.providerID !== "anthropic" : false
+  const allowCallOmoAgent = originalModel?.providerID !== "anthropic"
 
   return {
     ...originalBody,
@@ -150,7 +150,7 @@ export async function startTask(
     : undefined
   const launchVariant = input.model?.variant
   const normalizedAgent = stripAgentListSortPrefix(input.agent)
-  const allowCallOmoAgent = launchModel ? launchModel.providerID !== "anthropic" : false
+  const allowCallOmoAgent = launchModel?.providerID !== "anthropic"
 
   applySessionPromptParams(sessionID, input.model)
 
@@ -286,7 +286,7 @@ export async function resumeTask(
       }
     : undefined
   const resumeVariant = task.model?.variant
-  const allowCallOmoAgent = resumeModel ? resumeModel.providerID !== "anthropic" : false
+  const allowCallOmoAgent = resumeModel?.providerID !== "anthropic"
 
   applySessionPromptParams(task.sessionID, task.model)
 

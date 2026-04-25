@@ -221,7 +221,7 @@ bunDescribe("sendSyncPrompt", () => {
     bunExpect(promptArgs.body.tools.call_omo_agent).toBe(false)
   })
 
-  bunTest("disables call_omo_agent when categoryModel is omitted", async () => {
+  bunTest("keeps call_omo_agent enabled when categoryModel is omitted (parent provider inherited)", async () => {
     //#given
     const { sendSyncPrompt } = require("./sync-prompt-sender")
 
@@ -258,7 +258,7 @@ bunDescribe("sendSyncPrompt", () => {
 
     //#then
     bunExpect(promptAsync).toHaveBeenCalled()
-    bunExpect(promptArgs.body.tools.call_omo_agent).toBe(false)
+    bunExpect(promptArgs.body.tools.call_omo_agent).toBe(true)
   })
 
   bunTest("keeps call_omo_agent enabled for openai provider", async () => {
