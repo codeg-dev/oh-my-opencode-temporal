@@ -68,7 +68,7 @@ export async function sendSyncPrompt(
   const allowTask = isPlanFamily(input.agentToUse)
   const tddEnabled = input.sisyphusAgentConfig?.tdd
   const effectivePrompt = buildTaskPrompt(input.args.prompt, input.agentToUse, tddEnabled)
-  const allowCallOmoAgent = input.categoryModel?.providerID !== "anthropic"
+  const allowCallOmoAgent = input.categoryModel ? input.categoryModel.providerID !== "anthropic" : false
   const tools = {
     task: allowTask,
     call_omo_agent: allowCallOmoAgent,
