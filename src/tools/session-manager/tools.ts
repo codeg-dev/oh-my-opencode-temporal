@@ -109,10 +109,6 @@ export function createSessionManagerTools(
     },
     execute: async (args: SessionReadArgs, _context) => {
       try {
-        if (!(await resolvedDeps.sessionExists(args.session_id))) {
-          return `Session not found: ${args.session_id}`
-        }
-
         let messages = await resolvedDeps.readSessionMessages(args.session_id)
 
         if (messages.length === 0) {
