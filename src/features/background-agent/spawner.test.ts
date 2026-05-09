@@ -571,7 +571,7 @@ describe("background-agent spawner fallback model promotion", () => {
     expect(body.tools?.call_omo_agent).toBe(false)
   })
 
-  test("createFallbackBody keeps call_omo_agent enabled when provider is omitted (parent provider inherited)", async () => {
+  test("createFallbackBody disables call_omo_agent when provider is omitted", async () => {
     const body = buildFallbackBody(
       {
         tools: { task: true, call_omo_agent: true, question: true },
@@ -579,7 +579,7 @@ describe("background-agent spawner fallback model promotion", () => {
       "general",
     )
 
-    expect(body.tools?.call_omo_agent).toBe(true)
+    expect(body.tools?.call_omo_agent).toBe(false)
   })
 
   test("keeps agent when explicit model is configured", async () => {

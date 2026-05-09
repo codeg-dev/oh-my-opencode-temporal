@@ -813,7 +813,7 @@ describe("executeSyncContinuation - toast cleanup error paths", () => {
     })
   })
 
-  test("keeps call_omo_agent enabled during sync continuation when resumed model is omitted (parent provider inherited)", async () => {
+  test("disables call_omo_agent during sync continuation when resumed model is omitted", async () => {
     //#given
     const promptAsyncCalls: Array<{ path: { id: string }; body: Record<string, unknown> }> = []
     const mockClient = {
@@ -876,7 +876,7 @@ describe("executeSyncContinuation - toast cleanup error paths", () => {
     expect(promptAsyncCalls).toHaveLength(1)
     expect(promptAsyncCalls[0]?.body.tools).toEqual({
       task: false,
-      call_omo_agent: true,
+      call_omo_agent: false,
       question: false,
     })
   })
