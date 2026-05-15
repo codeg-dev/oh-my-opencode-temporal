@@ -183,6 +183,31 @@ describe("model-error-classifier", () => {
     expect(result).toBe(false)
   })
 
+  test("treats explicit plan limit message as non-retryable STOP error", () => {
+    //#given
+    const error = { message: "Your plan limit has been reached for this account" }
+
+    //#when
+    const result = shouldRetryError(error)
+
+    //#then
+    expect(result).toBe(false)
+  })
+
+  test("treats Claude extra usage message as retryable despite mentioning plan limits", () => {
+    //#given
+    const error = {
+      message:
+        "Third-party apps now draw from your extra usage, not your plan limits. Add more at claude.ai/settings/usage and keep going.",
+    }
+
+    //#when
+    const result = shouldRetryError(error)
+
+    //#then
+    expect(result).toBe(true)
+  })
+
   test("treats insufficient credits message as non-retryable STOP error (no error name)", () => {
     //#given
     const error = { message: "insufficient credits to complete this request" }
