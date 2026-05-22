@@ -1,6 +1,6 @@
 # Dependencies
-.sisyphus/*
-!.sisyphus/rules/
+.omo/*
+!.omo/rules/
 node_modules/
 
 # Build output
