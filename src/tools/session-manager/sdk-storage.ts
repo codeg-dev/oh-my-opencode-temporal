@@ -21,7 +21,9 @@ export async function getSdkMainSessions(
   client: PluginInput["client"],
   directory?: string,
 ): Promise<SessionMetadata[]> {
-  const response = await client.session.list()
+  const response = await client.session.list({
+    query: directory ? { directory } : undefined,
+  })
   const error = unwrapSdkResponseError(response)
   if (error) throw error
 

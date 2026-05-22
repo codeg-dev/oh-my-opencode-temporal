@@ -1,5 +1,4 @@
 import type { PluginInput } from "@opencode-ai/plugin"
-import { isSqliteBackend } from "../../shared/opencode-storage-detection"
 import { log } from "../../shared"
 import { getFileAllSessions, getFileMainSessions, fileSessionExists, getFileSessionInfo, getFileSessionMessages, getFileSessionTodos, getFileSessionTranscript } from "./file-storage"
 import { getSdkAllSessions, getSdkMainSessions, getSdkSessionMessages, getSdkSessionTodos, sdkSessionExists, shouldFallbackFromSdkError } from "./sdk-storage"
@@ -42,7 +41,7 @@ export function resetStorageClient(): void {
 }
 
 export async function getMainSessions(options: GetMainSessionsOptions): Promise<SessionMetadata[]> {
-  if (isSqliteBackend() && sdkClient) {
+  if (sdkClient) {
     try {
       const sdkSessions = await getSdkMainSessions(sdkClient, options.directory)
       const fileSessions = await getFileMainSessions(options.directory)
@@ -57,7 +56,7 @@ export async function getMainSessions(options: GetMainSessionsOptions): Promise<
 }
 
 export async function getAllSessions(): Promise<string[]> {
-  if (isSqliteBackend() && sdkClient) {
+  if (sdkClient) {
     try {
       const sdkSessionIds = await getSdkAllSessions(sdkClient)
       const fileSessionIds = await getFileAllSessions()
@@ -74,7 +73,7 @@ export async function getAllSessions(): Promise<string[]> {
 export { getMessageDir } from "../../shared/opencode-message-dir"
 
 export async function sessionExists(sessionID: string): Promise<boolean> {
-  if (isSqliteBackend() && sdkClient) {
+  if (sdkClient) {
     try {
       const existsInSdk = await sdkSessionExists(sdkClient, sessionID)
       if (existsInSdk) return true
@@ -87,7 +86,7 @@ export async function sessionExists(sessionID: string): Promise<boolean> {
 }
 
 export async function readSessionMessages(sessionID: string): Promise<SessionMessage[]> {
-  if (isSqliteBackend() && sdkClient) {
+  if (sdkClient) {
     try {
       const sdkMessages = await getSdkSessionMessages(sdkClient, sessionID)
       if (sdkMessages.length > 0) return sdkMessages
@@ -101,7 +100,7 @@ export async function readSessionMessages(sessionID: string): Promise<SessionMes
 }
 
 export async function readSessionTodos(sessionID: string): Promise<TodoItem[]> {
-  if (isSqliteBackend() && sdkClient) {
+  if (sdkClient) {
     try {
       const sdkTodos = await getSdkSessionTodos(sdkClient, sessionID)
       if (sdkTodos.length > 0) return sdkTodos
@@ -119,7 +118,7 @@ export async function readSessionTranscript(sessionID: string): Promise<number> 
 }
 
 export async function getSessionInfo(sessionID: string): Promise<SessionInfo | null> {
-  if (isSqliteBackend() && sdkClient) {
+  if (sdkClient) {
     try {
       const sdkMessages = await getSdkSessionMessages(sdkClient, sessionID)
       if (sdkMessages.length > 0) {

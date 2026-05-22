@@ -240,8 +240,7 @@ describe("session-manager storage", () => {
     expect(info?.agents_used).toContain("oracle")
   })
 
-  test("getSessionInfo uses SDK session messages on sqlite backend", async () => {
-    sqliteBackend = true
+  test("getSessionInfo uses SDK session messages when client is set", async () => {
     const now = Date.now()
 
     storage.setStorageClient({

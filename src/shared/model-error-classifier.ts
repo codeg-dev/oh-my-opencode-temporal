@@ -62,6 +62,7 @@ const RETRYABLE_MESSAGE_PATTERNS = [
   "service unavailable",
   "internal_server_error",
   "free usage",
+  "extra usage",
   "usage exceeded",
   "credit",
   "balance",
@@ -112,6 +113,14 @@ function hasProviderAutoRetrySignal(message: string): boolean {
   return AUTO_RETRY_GATE_PATTERNS.some((pattern) => message.includes(pattern))
 }
 
+function matchesStopMessagePattern(message: string, pattern: string): boolean {
+  if (pattern === "plan limit" && /\bnot\s+your\s+plan\s+limits?\b/.test(message)) {
+    return false
+  }
+
+  return message.includes(pattern)
+}
+
 export interface ErrorInfo {
   name?: string
   message?: string
@@ -142,7 +151,7 @@ export function isRetryableModelError(error: ErrorInfo): boolean {
   const msg = error.message?.toLowerCase() ?? ""
 
   // STOP patterns take precedence over retryable patterns
-  if (STOP_MESSAGE_PATTERNS.some((pattern) => msg.includes(pattern))) {
+  if (STOP_MESSAGE_PATTERNS.some((pattern) => matchesStopMessagePattern(msg, pattern))) {
     return false
   }
 
