@@ -61,6 +61,7 @@ export const BUILD_NODES: BuildNode[] = [
   },
   { id: "shared-skills-assets", command: "bun", args: ["run", "build:shared-skills-assets"], deps: ["index"] },
   { id: "node-require-shim", command: "bun", args: ["run", "build:node-require-shim"], deps: ["index"] },
+  { id: "v2-index", command: "node", args: ["script/write-v2-shim.mjs"], deps: ["index"] },
   { id: "declarations", command: "tsc", args: ["--emitDeclarationOnly"], deps: [] },
   {
     id: "cli",
